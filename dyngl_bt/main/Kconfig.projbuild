@@ -1,0 +1,7 @@
+menu "DYNGL Settings"
+    config DYNGL_BT_KEYBOARD_ADDR
+        string "Target device MAC address"
+        default "00:11:22:33:44:55"
+        help
+            "Configure your keyboard Bluetooth MAC address"
+endmenu
