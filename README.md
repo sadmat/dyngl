@@ -29,9 +29,24 @@ Example pin configuration for **ESP32-DevKitC-v4** and **ESP32S3-DevKitC-1**:
 | SCLK     | GPIO18   | GPIO12     |
 | CS       | GPIO5    | GPIO10     |
 
-You can change these pin assignments in the following files:
-- **ESP32 (dyngl_bt)**: `dyngl_bt/main/dyngl_spi.c`, function `dyngl_spi_init()`
-- **ESP32S3 (dyngl_usb)**: `dyngl_usb/main/dyngl_spi.c`, function `dyngl_spi_init()`
+You can change these pin assignments using **idf.py menuconfig**:
+
+```sh
+cd dyngl_bt
+idf.py menuconfig
+```
+
+And then navigate to:
+```
+DYNGL Settings → SPI Pin Assignments
+```
+
+Then do the same for `dyngl_usb`:
+
+```sh
+cd dyngl_bt
+idf.py menuconfig
+```
 
 ### Keyboard MAC Address
 

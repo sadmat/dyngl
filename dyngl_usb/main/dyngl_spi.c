@@ -6,6 +6,7 @@
 #include "esp_log.h"
 #include "hal/spi_types.h"
 #include "portmacro.h"
+#include "sdkconfig.h"
 
 #define TAG "DYNGL"
 
@@ -23,22 +24,27 @@ void dyngl_spi_init(
     consumer_callback = consumer_report_cb;
 
     spi_bus_config_t buscfg = {
-        .mosi_io_num = 11,
-        .miso_io_num = 13,
-        .sclk_io_num = 12,
+        .mosi_io_num = CONFIG_DYNGL_SPI_MOSI,
+        .miso_io_num = CONFIG_DYNGL_SPI_MISO,
+        .sclk_io_num = CONFIG_DYNGL_SPI_SCLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1
     };
 
     spi_slave_interface_config_t slvcfg = {
         .mode = 0,
-        .spics_io_num = 10,
+        .spics_io_num = CONFIG_DYNGL_SPI_CS,
         .queue_size = 3,
         .flags = 0,
         .post_setup_cb = NULL,
         .post_trans_cb = NULL
     };
 
+    ESP_LOGI(TAG, "Starting SPI");
+    ESP_LOGI(TAG, "MISO: %d", CONFIG_DYNGL_SPI_MISO);
+    ESP_LOGI(TAG, "MOSI: %d", CONFIG_DYNGL_SPI_MOSI);
+    ESP_LOGI(TAG, "SCLK: %d", CONFIG_DYNGL_SPI_SCLK);
+    ESP_LOGI(TAG, "CS: %d", CONFIG_DYNGL_SPI_CS);
     ESP_ERROR_CHECK(spi_slave_initialize(SPI2_HOST, &buscfg, &slvcfg, SPI_DMA_CH_AUTO));
 
     transaction_buffer = spi_bus_dma_memory_alloc(SPI2_HOST, sizeof(dyngl_message_t), 0);
