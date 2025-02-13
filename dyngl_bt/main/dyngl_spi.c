@@ -3,6 +3,7 @@
 #include "esp_err.h"
 #include "esp_log.h"
 #include "driver/spi_master.h"
+#include "sdkconfig.h"
 #include <stdint.h>
 #include <string.h>
 
@@ -14,9 +15,9 @@ static spi_transaction_t transaction;
 
 void dyngl_spi_init() {
     spi_bus_config_t buscfg = {
-        .mosi_io_num = 23,
-        .miso_io_num = 19,
-        .sclk_io_num = 18,
+        .mosi_io_num = CONFIG_DYNGL_SPI_MOSI,
+        .miso_io_num = CONFIG_DYNGL_SPI_MISO,
+        .sclk_io_num = CONFIG_DYNGL_SPI_SCLK,
         .quadwp_io_num = -1,
         .quadhd_io_num = -1
     };
@@ -28,11 +29,16 @@ void dyngl_spi_init() {
         .clock_speed_hz = 5000000,
         .duty_cycle_pos = 128,
         .mode = 0,
-        .spics_io_num = 5,
+        .spics_io_num = CONFIG_DYNGL_SPI_CS,
         .cs_ena_posttrans = 3,
         .queue_size = 3
     };
 
+    ESP_LOGI(TAG, "Starting SPI");
+    ESP_LOGI(TAG, "MISO: %d", CONFIG_DYNGL_SPI_MISO);
+    ESP_LOGI(TAG, "MOSI: %d", CONFIG_DYNGL_SPI_MOSI);
+    ESP_LOGI(TAG, "SCLK: %d", CONFIG_DYNGL_SPI_SCLK);
+    ESP_LOGI(TAG, "CS: %d", CONFIG_DYNGL_SPI_CS);
     ESP_ERROR_CHECK(spi_bus_initialize(SPI2_HOST, &buscfg, SPI_DMA_CH_AUTO)); 
     ESP_ERROR_CHECK(spi_bus_add_device(SPI2_HOST, &devcfg, &handle));
 }

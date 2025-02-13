@@ -1,26 +1,20 @@
 menu "DYNGL Settings"
-    config DYNGL_BT_KEYBOARD_ADDR
-        string "Target device MAC address"
-        default "00:11:22:33:44:55"
-        help
-            "Configure your keyboard Bluetooth MAC address"
-
     menu "SPI Pin Assignments"
         config DYNGL_SPI_MISO
             int "MISO pin number"
-            default 19
+            default 13
 
         config DYNGL_SPI_MOSI
             int "MOSI pin number"
-            default 23
+            default 11
 
         config DYNGL_SPI_SCLK
             int "SCLK pin number"
-            default 18
+            default 12
 
         config DYNGL_SPI_CS
             int "CS pin number"
-            default 5
+            default 10
 
     endmenu
 endmenu
