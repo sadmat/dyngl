@@ -5,6 +5,8 @@
 #include "dyngl_usb.h"
 #include "dyngl_common.h"
 #include "esp_log.h"
+#include "esp_log_buffer.h"
+#include "esp_log_level.h"
 
 #define TAG "DYNGL"
 
@@ -20,11 +22,11 @@ void app_main(void) {
 }
 
 void kb_report_cb(uint8_t modifier_keys, const uint8_t *report) {
-    ESP_LOG_BUFFER_HEX(TAG, report, DYNGL_KB_REPORT_LEN);
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, report, DYNGL_KB_REPORT_LEN, ESP_LOG_DEBUG);
     dyngl_usb_send_kb_report(modifier_keys, report);
 }
 
 void consumer_report_cb(uint8_t *report, uint16_t len) {
-    ESP_LOG_BUFFER_HEX(TAG, report, DYNGL_CONSUMER_REPORT_LEN);
+    ESP_LOG_BUFFER_HEX_LEVEL(TAG, report, DYNGL_CONSUMER_REPORT_LEN, ESP_LOG_DEBUG);
     dyngl_usb_send_consumer_report(report, len);
 }
