@@ -44,8 +44,12 @@ DYNGL Settings → SPI Pin Assignments
 Then do the same for `dyngl_usb`:
 
 ```sh
-cd dyngl_bt
+cd dyngl_usb
 idf.py menuconfig
+```
+And change pin assignments:
+```
+DYNGL Settings → SPI Pin Assignments
 ```
 
 ### Keyboard MAC Address
