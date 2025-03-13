@@ -76,3 +76,16 @@ void dyngl_spi_send_consumer_report(const uint8_t *report, uint16_t len) {
 
     ESP_ERROR_CHECK(spi_device_transmit(handle, &transaction));
 }
+
+void dyngl_spi_send_state_chg(dyngl_state_t new_state) {
+    dyngl_message_t msg = {
+        .report_type = DYNGL_REPORT_STATE_CHG,
+        .report.state = new_state
+    };
+
+    transaction.tx_buffer = &msg;
+    transaction.rx_buffer = NULL;
+    transaction.length = sizeof(msg) * 8;
+
+    ESP_ERROR_CHECK(spi_device_transmit(handle, &transaction));
+}

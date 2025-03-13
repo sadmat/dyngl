@@ -14,14 +14,17 @@ void post_transaction_cb(spi_slave_transaction_t *transaction);
 
 static dyngl_spi_kb_report_cb kb_callback = NULL;
 static dyngl_spi_consumer_report_cb consumer_callback = NULL;
+static dyngl_spi_state_report_cb state_callback = NULL;
 static void *transaction_buffer = NULL;
 
 void dyngl_spi_init(
     dyngl_spi_kb_report_cb kb_report_cb,
-    dyngl_spi_consumer_report_cb consumer_report_cb
+    dyngl_spi_consumer_report_cb consumer_report_cb,
+    dyngl_spi_state_report_cb state_report_cb
 ) {
     kb_callback = kb_report_cb;
     consumer_callback = consumer_report_cb;
+    state_callback = state_report_cb;
 
     spi_bus_config_t buscfg = {
         .mosi_io_num = CONFIG_DYNGL_SPI_MOSI,
@@ -65,6 +68,10 @@ void dyngl_spi_run_task() {
     } else if (msg->report_type == DYNGL_REPORT_CONSUMER) {
         if (consumer_callback) {
             consumer_callback(msg->report.consumer.report, DYNGL_CONSUMER_REPORT_LEN);
+        }
+    } else if (msg->report_type == DYNGL_REPORT_STATE_CHG) {
+        if (state_callback) {
+            state_callback(msg->report.state);
         }
     } else {
         ESP_LOGW(TAG, "Unknown report received: report type: %d, tx len: %zu", msg->report_type, transaction.trans_len);

@@ -1,4 +1,5 @@
 #include "dyngl_bt.h"
+#include "dyngl_common.h"
 #include "esp_bt.h"
 #include "esp_bt_defs.h"
 #include "esp_bt_main.h"
@@ -31,10 +32,12 @@ const char *gap_bt_evt_name(esp_bt_gap_cb_event_t event);
 static esp_bd_addr_t keyboard_addr = { 0x00 };
 static dyngl_bt_kb_report_callback kb_report_cb = NULL;
 static dyngl_bt_consumer_report_callback consumer_report_cb = NULL;
+static dyngl_bt_state_chg_callback state_chg_cb = NULL;
 
 void dyngl_bt_init(
     dyngl_bt_kb_report_callback kb_report_callback,
     dyngl_bt_consumer_report_callback consumer_report_callback,
+    dyngl_bt_state_chg_callback state_chg_callback,
     const char *kb_addr
 ) {
     esp_bt_controller_config_t bt_config = BT_CONTROLLER_INIT_CONFIG_DEFAULT();
@@ -47,6 +50,7 @@ void dyngl_bt_init(
 
     kb_report_cb = kb_report_callback;
     consumer_report_cb = consumer_report_callback;
+    state_chg_cb = state_chg_callback;
 
     ESP_ERROR_CHECK(str_to_addr(kb_addr, (uint8_t *)&keyboard_addr));
     ESP_LOGI(TAG, "Initializing BT module with kb addr: " ESP_BD_ADDR_STR, ESP_BD_ADDR_HEX(keyboard_addr));
@@ -60,6 +64,20 @@ void dyngl_bt_init(
     ESP_ERROR_CHECK(esp_bt_gap_register_callback(esp_bt_gap_callback));
     ESP_ERROR_CHECK(esp_bt_gap_set_scan_mode(ESP_BT_CONNECTABLE, ESP_BT_NON_DISCOVERABLE));
     ESP_ERROR_CHECK(esp_hidh_init(&config));
+}
+
+void dyngl_bt_pairing_mode() {
+    int dev_num = esp_bt_gap_get_bond_device_num();
+    esp_bd_addr_t *addrs = malloc(sizeof(esp_bd_addr_t) * dev_num);
+    esp_bt_gap_get_bond_device_list(&dev_num, addrs);
+    for (int i = 0; i < dev_num; ++i) {
+        esp_bt_gap_remove_bond_device(addrs[i]);
+    }
+    free(addrs);
+
+    ESP_LOGI(TAG, "Paired devices removed. Scanning...");
+    ESP_ERROR_CHECK(esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, 10, 0));
+    state_chg_cb(DYNGL_STATE_PAIRING);
 }
 
 void start_scan_if_needed() {
@@ -78,8 +96,10 @@ void start_scan_if_needed() {
     if (!kb_found) {
         ESP_LOGI(TAG, "Keyboard not yet paired. Scanning...");
         ESP_ERROR_CHECK(esp_bt_gap_start_discovery(ESP_BT_INQ_MODE_GENERAL_INQUIRY, 10, 0));
+        state_chg_cb(DYNGL_STATE_PAIRING);
     } else {
         ESP_LOGI(TAG, "Keyboard already paired. Waiting for connection...");
+        state_chg_cb(DYNGL_STATE_IDLE);
     }
 }
 
@@ -116,6 +136,7 @@ void esp_hidh_callback(void *arg, esp_event_base_t event_base, int32_t event_id,
     switch (event) {
         case ESP_HIDH_OPEN_EVENT:
             ESP_LOGD(TAG, "ESP_HIDH_OPEN_EVENT");
+            state_chg_cb(DYNGL_STATE_CONNECTED);
             break;
         case ESP_HIDH_BATTERY_EVENT:
             ESP_LOGD(TAG, "ESP_HIDH_BATTERY_EVENT");
@@ -141,6 +162,7 @@ void esp_hidh_callback(void *arg, esp_event_base_t event_base, int32_t event_id,
             break;
         case ESP_HIDH_CLOSE_EVENT:
             ESP_LOGD(TAG, "ESP_HIDH_CLOSE_EVENT");
+            state_chg_cb(DYNGL_STATE_IDLE);
             break;
         case ESP_HIDH_START_EVENT:
             ESP_LOGD(TAG, "ESP_HIDH_START_EVENT, status: %d", param->start.status);
